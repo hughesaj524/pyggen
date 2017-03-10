@@ -1,9 +1,7 @@
 import random
+import abc
 
-from abc import ABCMeta
-from population import *
-
-class Chromosome(metaclass=ABCMeta):
+class Chromosome(metaclass=abc.ABCMeta):
     """A generic chromosome class for genetic algorithms.
     The population is made up of these. These, in turn, are made up of genes, which can be in a series of different
     states, or alleles. The genes are actually stored as a bignum for efficiency reasons, but there are plenty
@@ -16,7 +14,7 @@ class Chromosome(metaclass=ABCMeta):
     # The population the chromosome belongs to.
     parent = None
 
-    def __init__(self, new_parent: Population, new_genes: int = 0) -> Chromosome:
+    def __init__(self, new_parent: "Population", new_genes: int = 0) -> "Chromosome":
         """Creates a new chromosome object.
 
         :param new_parent: The population the chromosome should belong to.
@@ -25,6 +23,14 @@ class Chromosome(metaclass=ABCMeta):
 
         self.parent = new_parent
         self.set_genes(gene_set)
+
+    def __repr__(self):
+        return "Chromosome(" + self.parent + ", " + self.genes + ")"
+
+    @abc.abstractmethod
+    def get_fitness(self) -> int:
+        """Returns the fitness of the chromosome."""
+        ...
 
     def set_genes(self, gene_set: int):
         """Sets the genes of the chromosome.
@@ -49,7 +55,7 @@ class Chromosome(metaclass=ABCMeta):
         
         return bool(genes & (1 << index))
 
-    def ux(self, other: Chromosome) -> (Chromosome, Chromosome):
+    def ux(self, other: "Chromosome") -> ("Chromosome", "Chromosome"):
         #TODO
         pass
 
