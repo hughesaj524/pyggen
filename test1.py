@@ -16,7 +16,7 @@ class Pop1(population.Population):
     
     mutate_chance = 0.0015
     population_size = 20
-    random_seed = 1
+    random_seed = 125
 
 
 pop1 = Pop1()

@@ -1,6 +1,7 @@
 import random
 from abc import ABCMeta, abstractmethod
 
+
 class Chromosome(metaclass=ABCMeta):
     """A generic chromosome class for genetic algorithms.
     The population is made up of these. These, in turn, are made up of genes, which can be in a series of different
@@ -14,7 +15,7 @@ class Chromosome(metaclass=ABCMeta):
     # The population the chromosome belongs to.
     parent = None
 
-    def __init__(self, new_parent: "Population", new_genes: int = 0) -> "Chromosome":
+    def __init__(self, new_parent: "Population", new_genes: int = -1) -> "Chromosome":
         """Creates a new chromosome object.
 
         :param new_parent: The population the chromosome should belong to.
@@ -22,7 +23,8 @@ class Chromosome(metaclass=ABCMeta):
         """
 
         self.parent = new_parent
-        self.set_genes(new_genes)
+        self.set_genes(new_genes if new_genes != -1 else
+                       random.randint(0, 2**self.parent.gene_count-1))
 
     def __repr__(self):
         return "Chromosome(" + str(self.genes) + ")"
@@ -38,7 +40,7 @@ class Chromosome(metaclass=ABCMeta):
         :param geneSet: An integer representing the genes of the chromosome.
         :throws IllegalArgumentException: if the new gene set is too high for the gene count dictated by the population.
         """
-        if (gene_set // 10) + 1 > self.parent.gene_count:
+        if gene_set.bit_length() > self.parent.gene_count:
             raise ValueError("Invalid gene set for chromosome.")
         self.genes = gene_set
 
@@ -58,7 +60,7 @@ class Chromosome(metaclass=ABCMeta):
     def ux(self, other: "Chromosome") -> ("Chromosome", "Chromosome"):
         """Produces a child chromosome from the genes of this chromosome and the other paramater.
 
-        :
+        :param other: The chromosome to cross with
         """
         new_genes = 0
         for i in range(self.parent.gene_count):

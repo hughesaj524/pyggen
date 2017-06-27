@@ -61,8 +61,7 @@ class Population(metaclass=ABCMeta):
 
     def run(self) -> [Chromosome]:
         while self.step():
-            pass
-        return self.population
+            yield self.population
 
     def step(self) -> bool:
         # evaluate this branch first so values like fitness of chromosomes can be used in haltcond without throwing errors
@@ -75,6 +74,7 @@ class Population(metaclass=ABCMeta):
             return False
         else:
             self.new_pop()
+        print(self.population)
         self._current_gen += 1
         return True
 
