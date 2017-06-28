@@ -1,13 +1,15 @@
 import random
 from abc import ABCMeta, abstractmethod, abstractproperty
+from typing import Generic, List, Iterator, Dict, Tuple, Type
 
 from .chromosome import Chromosome
 
-class Population(metaclass=ABCMeta):
+
+class Population(Generic[P, C], metaclass=ABCMeta):
     """A generic controller class for genetic algorithms."""
 
     @abstractproperty
-    def ChromType(self) -> "class":
+    def ChromType(self) -> Type[C]:
         "The class used to create the population's chromosomes."
         pass
     
@@ -42,6 +44,16 @@ class Population(metaclass=ABCMeta):
     def halt_cond(self) -> bool:
         """Returns true if the current generation is the final one."""
         pass
+
+    @abstractmethod
+    def select(self) -> Iterator[C]:
+        """The selection function to be used."""
+        pass
+
+    @abstractmethod
+    def cross(chrom1: C, chrom2: C) -> C:
+        """The crossover function to be used."""
+        pass
     
     random.seed(random_seed)
 
@@ -49,17 +61,17 @@ class Population(metaclass=ABCMeta):
     population = []
     _current_gen = -1
     
-    def __init__(self):
+    def __init__(self) -> P:
         assert(self.population_size % 2 == 0)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Population(" + str(self.population) + ")"
 
-    def get_best(self) -> Chromosome:
+    def get_best(self) -> C:
         """Returns the best solution from the population."""
         return self.population[0]
 
-    def run(self) -> [Chromosome]:
+    def run(self) -> List[C]:
         while self.step():
             yield self.population
 
@@ -86,25 +98,38 @@ class Population(metaclass=ABCMeta):
         for i in range(self.elitism_count):
             next_pop.append(self.population[i])
 
-        to_zip_cross = self.roulette_select()
+        to_zip_cross = self.select()
         to_cross = zip(to_zip_cross, to_zip_cross)                                                                                                                                                                           
         for parent1, parent2 in to_cross:
-            next_pop += [parent1.ux(parent2) for i in range(2)]
+            next_pop += [cross(parent1, parent2) for i in range(2)]
 
         self.population = sorted(next_pop, key=lambda x: x.get_fitness())
 
-    def roulette_select(self):
+    def ux(chrom1: C, chrom2: C) -> C:
+        """Produces a child chromosome from the genes of chrom1 and chrom2 using UX crossover.
+
+        :param chrom1: The first chromosome to cross with.
+        :param chrom2: The second chromosome to cross with.
+        """
+        new_genes = 0
+        for i in range(self.parent.gene_count):
+            new_genes |= random.choice((chrom1.gene_at(i), chrom2.gene_at(i))) << i
+        return ChromType(self, new_genes)
+
+    def roulette_select(self) -> Iterator[C]:
         """Yields tuples of chromosomes from the population for crossover using roulette selection"""
         weighted_pop = self.weight_pop()
-        for index in range(int((self.population_size - self.elitism_count) / 2)):
+        for index in range(2 * int((self.population_size - self.elitism_count) / 2)):
             roulette = random.random()
             for i in weighted_pop.keys():
                 if roulette >= i:
                     yield weighted_pop[i]
                     break
+                
 
-    def weight_pop(self) -> "Dict[Double, C]":
+    def weight_pop(self) -> Dict[float, C]:
         """Returns a dict with weighted values for roulette wheel selection."""
+        self.population = sorted(self.population)
         weighted_pop = {}
         for i in range(len(self.population)):
             weighted_pop[float(1 / (i + 1))] = self.population[i]
