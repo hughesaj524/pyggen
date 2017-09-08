@@ -1,4 +1,3 @@
-import random
 from abc import ABCMeta, abstractmethod
 
 
@@ -24,7 +23,7 @@ class Chromosome(metaclass=ABCMeta):
 
         self.parent = new_parent
         self.set_genes(new_genes if new_genes != -1 else
-                       random.randint(0, 2**self.parent.gene_count-1))
+                       self.parent.random.randint(0, 2**self.parent.gene_count-1))
 
     def __repr__(self):
         return "Chromosome(" + str(self.genes) + ")"
@@ -32,6 +31,7 @@ class Chromosome(metaclass=ABCMeta):
     @abstractmethod
     def get_fitness(self) -> int:
         """Returns the fitness of the chromosome."""
+        #TODO: memoize
         ...
 
     def set_genes(self, gene_set: int):
@@ -56,22 +56,3 @@ class Chromosome(metaclass=ABCMeta):
         """
         
         return bool(self.genes & (1 << index))
-
-    def ux(self, other: "Chromosome") -> ("Chromosome", "Chromosome"):
-        """Produces a child chromosome from the genes of this chromosome and the other paramater.
-
-        :param other: The chromosome to cross with
-        """
-        new_genes = 0
-        for i in range(self.parent.gene_count):
-            new_genes |= random.choice((self.gene_at(i), other.gene_at(i))) << i
-        return type(self)(self.parent, new_genes)
-
-    def mutate(self):
-        """Mutates the chromosome according to the parent population's mutation chance."""
-
-        newGenes = self.genes
-        for i in range(parent.gene_count):
-            if (random.random() > parent.mutate_chance):
-                self.genes ^= 1 << i
-                
